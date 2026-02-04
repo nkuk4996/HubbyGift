@@ -1,30 +1,65 @@
 /* ============================================
-   💝 Valentine's Crossword - Game Logic
+   💕 The Two of Us - Game Logic
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ============================================
+    // Game Data
+    // ============================================
+    
+    const chapters = [
+        {
+            number: 1,
+            title: "THE BEGINNING",
+            puzzles: [
+                { clue: "Where we first met", answer: "UNI", special: 2 },
+                { clue: "Your first impression of me", answer: "PUZZLED", special: 4 },
+                { clue: "The first thing I noticed about you", answer: "SMILE", special: null }
+            ]
+        },
+        {
+            number: 2,
+            title: "THE LITTLE THINGS",
+            puzzles: [
+                { clue: "Our go-to snack", answer: "BOBA", special: 1 },
+                { clue: "What we always forget to decide", answer: "DINNER", special: null },
+                { clue: "Your most-used emoji with me 🐢", answer: "TURTLE", special: 1 },
+                { clue: "Our unspoken routine", answer: "COFFEE", special: null }
+            ]
+        },
+        {
+            number: 3,
+            title: "US BEING US",
+            puzzles: [
+                { clue: "Our most said word 😭", answer: "BOMBOCLAAT", special: null },
+                { clue: "What we laugh at way too much", answer: "REELS", special: null },
+                { clue: "My favourite thing you do without realising", answer: "CARE", special: null }
+            ]
+        },
+        {
+            number: 4,
+            title: "HOW YOU MAKE ME FEEL",
+            puzzles: [
+                { clue: "One word that describes you", answer: "LOVELY", special: [2, 5] },
+                { clue: "You make me feel...", answer: "HOME", special: 3 },
+                { clue: "What I feel when you walk in", answer: "CALM", special: null },
+                { clue: "What I never feel with you", answer: "ALONE", special: 2 }
+            ]
+        }
+    ];
+
     // ============================================
     // State
     // ============================================
     
     const state = {
-        solvedClues: new Set(),
-        totalClues: 14, // All clues except final
-        secretMessage: 'ILOVEYOU',
-        revealedLetters: new Array(8).fill(false),
-        // Map: answer -> { letterIndex, secretIndex }
-        specialLetters: {
-            'UNI': { letterIndex: 2, secretIndex: 0 },        // I
-            'PUZZLED': { letterIndex: 4, secretIndex: 1 },    // L
-            'BOBA': { letterIndex: 1, secretIndex: 2 },       // O
-            'LOVELY': [                                        // V and Y
-                { letterIndex: 2, secretIndex: 3 },           // V
-                { letterIndex: 5, secretIndex: 5 }            // Y
-            ],
-            'HOME': { letterIndex: 3, secretIndex: 4 },       // E
-            'ALONE': { letterIndex: 2, secretIndex: 6 },      // O
-            'TURTLE': { letterIndex: 1, secretIndex: 7 }      // U
-        }
+        currentScreen: 'loading',
+        currentChapter: 0,
+        currentPuzzle: 0,
+        currentRow: 0,
+        currentTile: 0,
+        currentGuess: '',
+        isAnimating: false
     };
 
     // ============================================
@@ -32,19 +67,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================
     
     const screens = {
-        opening: document.getElementById('opening-screen'),
+        loading: document.getElementById('loading-screen'),
+        landing: document.getElementById('landing-screen'),
+        chapterIntro: document.getElementById('chapter-intro-screen'),
         game: document.getElementById('game-screen'),
+        secret: document.getElementById('secret-screen'),
         celebration: document.getElementById('celebration-screen')
     };
-    
+
     const elements = {
-        startBtn: document.getElementById('start-btn'),
-        progressFill: document.getElementById('progress-fill'),
+        loadingFill: document.getElementById('loading-fill'),
+        chapterNumber: document.getElementById('chapter-number'),
+        chapterTitle: document.getElementById('chapter-title'),
+        gameTitle: document.getElementById('game-title'),
+        gameSubtitle: document.getElementById('game-subtitle'),
+        progressDots: document.getElementById('progress-dots'),
         progressText: document.getElementById('progress-text'),
-        secretTracker: document.getElementById('secret-tracker'),
-        lockOverlay: document.getElementById('lock-overlay'),
-        finalChapter: document.getElementById('final-chapter'),
-        confetti: document.getElementById('confetti')
+        clueText: document.getElementById('clue-text'),
+        wordleGrid: document.getElementById('wordle-grid'),
+        keyboard: document.getElementById('keyboard'),
+        message: document.getElementById('message')
     };
 
     // ============================================
@@ -52,280 +94,370 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================
     
     function showScreen(screenName) {
-        Object.values(screens).forEach(screen => {
+        Object.entries(screens).forEach(([name, screen]) => {
             screen.classList.remove('active');
         });
         screens[screenName].classList.add('active');
-        
-        if (screenName === 'celebration') {
-            launchConfetti();
-        }
+        state.currentScreen = screenName;
     }
 
     // ============================================
-    // Game Initialization
+    // Loading Screen
     // ============================================
     
-    function initGame() {
-        // Start button handler
-        elements.startBtn.addEventListener('click', () => {
-            showScreen('game');
-        });
+    function startLoading() {
+        let progress = 0;
+        const duration = 3500; // 3.5 seconds for dramatic effect
+        const interval = 50;
+        const increment = (interval / duration) * 100;
         
-        // Initialize all clue cards
-        const clueCards = document.querySelectorAll('.clue-card:not(.final-clue)');
-        clueCards.forEach(card => {
-            initClueCard(card);
-        });
-        
-        // Initialize final clue
-        initFinalClue();
-        
-        // Set initial state
-        elements.finalChapter.classList.add('locked');
-        updateProgress();
-    }
-
-    // ============================================
-    // Clue Card Logic
-    // ============================================
-    
-    function initClueCard(card) {
-        const input = card.querySelector('.letter-input');
-        const answer = card.dataset.answer;
-        const letterBoxes = card.querySelectorAll('.letter-box');
-        
-        input.addEventListener('input', (e) => {
-            const value = e.target.value.toUpperCase();
+        const loadingInterval = setInterval(() => {
+            progress += increment;
+            elements.loadingFill.style.width = `${Math.min(progress, 100)}%`;
             
-            // Update letter boxes visually
-            letterBoxes.forEach((box, index) => {
-                if (value[index]) {
-                    box.classList.add('filled');
-                    box.textContent = value[index];
-                } else {
-                    box.classList.remove('filled');
-                    box.textContent = answer[index]; // Keep original for reference
-                }
-            });
-            
-            // Check if answer is correct
-            if (value === answer) {
-                handleCorrectAnswer(card, answer);
+            if (progress >= 100) {
+                clearInterval(loadingInterval);
+                setTimeout(() => {
+                    showScreen('landing');
+                }, 600);
             }
-        });
-        
-        // Focus handling
-        input.addEventListener('focus', () => {
-            card.style.transform = 'scale(1.02)';
-        });
-        
-        input.addEventListener('blur', () => {
-            card.style.transform = 'scale(1)';
-        });
+        }, interval);
     }
 
     // ============================================
-    // Answer Validation
+    // Chapter & Puzzle Navigation
     // ============================================
     
-    function handleCorrectAnswer(card, answer) {
-        if (state.solvedClues.has(answer)) return;
+    function showChapterIntro() {
+        const chapter = chapters[state.currentChapter];
+        elements.chapterNumber.textContent = `CHAPTER ${chapter.number}`;
+        elements.chapterTitle.textContent = chapter.title;
+        showScreen('chapterIntro');
+    }
+    
+    function startPuzzle() {
+        const chapter = chapters[state.currentChapter];
+        const puzzle = chapter.puzzles[state.currentPuzzle];
         
-        state.solvedClues.add(answer);
-        card.classList.add('solved');
-        
-        // Disable input
-        const input = card.querySelector('.letter-input');
-        input.disabled = true;
-        
-        // Reveal special letters if any
-        revealSpecialLetters(card, answer);
+        // Update header
+        elements.gameTitle.textContent = `CHAPTER ${chapter.number}`;
+        elements.gameSubtitle.textContent = chapter.title;
+        elements.clueText.textContent = puzzle.clue;
         
         // Update progress
-        updateProgress();
+        updateProgressIndicator();
         
-        // Check if all clues are solved
-        if (state.solvedClues.size === state.totalClues) {
-            unlockFinalChapter();
-        }
+        // Create grid
+        createWordleGrid(puzzle.answer.length);
         
-        // Play a subtle sound effect (optional)
-        playSuccessSound();
+        // Reset keyboard
+        document.querySelectorAll('.key').forEach(key => {
+            key.classList.remove('correct', 'present', 'absent');
+        });
+        
+        // Reset state
+        state.currentRow = 0;
+        state.currentTile = 0;
+        state.currentGuess = '';
+        
+        showScreen('game');
     }
-
-    // ============================================
-    // Special Letters Reveal
-    // ============================================
     
-    function revealSpecialLetters(card, answer) {
-        const specialData = state.specialLetters[answer];
-        if (!specialData) return;
+    function updateProgressIndicator() {
+        const chapter = chapters[state.currentChapter];
+        const total = chapter.puzzles.length;
+        const current = state.currentPuzzle + 1;
         
-        const letterBoxes = card.querySelectorAll('.letter-box');
-        const secretLetters = document.querySelectorAll('.secret-letter');
+        elements.progressText.textContent = `Puzzle ${current} of ${total}`;
         
-        // Handle single or multiple special letters
-        const dataArray = Array.isArray(specialData) ? specialData : [specialData];
-        
-        dataArray.forEach(data => {
-            const { letterIndex, secretIndex } = data;
-            
-            // Animate the special letter in the clue
-            setTimeout(() => {
-                if (letterBoxes[letterIndex]) {
-                    letterBoxes[letterIndex].classList.add('revealed');
-                }
-                
-                // Reveal in secret message tracker
-                if (secretLetters[secretIndex]) {
-                    state.revealedLetters[secretIndex] = true;
-                    secretLetters[secretIndex].textContent = state.secretMessage[secretIndex];
-                    secretLetters[secretIndex].classList.add('revealed');
-                }
-            }, 300);
+        elements.progressDots.innerHTML = '';
+        chapter.puzzles.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'progress-dot';
+            if (index < state.currentPuzzle) {
+                dot.classList.add('completed');
+            } else if (index === state.currentPuzzle) {
+                dot.classList.add('current');
+            }
+            elements.progressDots.appendChild(dot);
         });
     }
 
     // ============================================
-    // Progress Tracking
+    // Wordle Grid
     // ============================================
     
-    function updateProgress() {
-        const progress = (state.solvedClues.size / state.totalClues) * 100;
-        elements.progressFill.style.width = `${progress}%`;
-        elements.progressText.textContent = `${state.solvedClues.size} / ${state.totalClues}`;
+    function createWordleGrid(wordLength) {
+        elements.wordleGrid.innerHTML = '';
+        const maxAttempts = 6;
+        
+        for (let row = 0; row < maxAttempts; row++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'wordle-row';
+            
+            for (let col = 0; col < wordLength; col++) {
+                const tile = document.createElement('div');
+                tile.className = 'wordle-tile';
+                tile.dataset.row = row;
+                tile.dataset.col = col;
+                rowDiv.appendChild(tile);
+            }
+            
+            elements.wordleGrid.appendChild(rowDiv);
+        }
+    }
+    
+    function getTile(row, col) {
+        return document.querySelector(
+            `.wordle-tile[data-row="${row}"][data-col="${col}"]`
+        );
     }
 
     // ============================================
-    // Final Chapter
+    // Keyboard Input
     // ============================================
     
-    function unlockFinalChapter() {
-        elements.finalChapter.classList.remove('locked');
-        elements.lockOverlay.classList.add('hidden');
+    function handleKeyPress(key) {
+        if (state.isAnimating) return;
         
-        // Scroll to final chapter
-        setTimeout(() => {
-            elements.finalChapter.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center' 
-            });
-        }, 500);
+        const puzzle = chapters[state.currentChapter].puzzles[state.currentPuzzle];
+        const wordLength = puzzle.answer.length;
         
-        // Initialize final clue input
-        const finalInput = elements.finalChapter.querySelector('.letter-input');
-        finalInput.disabled = false;
+        if (key === 'BACKSPACE') {
+            deleteLetter();
+        } else if (key === 'ENTER') {
+            submitGuess();
+        } else if (state.currentTile < wordLength && /^[A-Z]$/.test(key)) {
+            addLetter(key);
+        }
     }
     
-    function initFinalClue() {
-        const finalCard = document.querySelector('.final-clue');
-        const finalInput = finalCard.querySelector('.letter-input');
-        const letterBoxes = finalCard.querySelectorAll('.letter-box:not(.space)');
-        const answer = 'ILOVEYOU';
-        
-        finalInput.addEventListener('input', (e) => {
-            // Remove spaces from input for comparison
-            const value = e.target.value.toUpperCase().replace(/\s/g, '');
-            
-            // Update letter boxes
-            let boxIndex = 0;
-            for (let i = 0; i < value.length && boxIndex < letterBoxes.length; i++) {
-                letterBoxes[boxIndex].classList.add('filled');
-                letterBoxes[boxIndex].textContent = value[i];
-                boxIndex++;
+    function addLetter(letter) {
+        const tile = getTile(state.currentRow, state.currentTile);
+        if (tile) {
+            tile.textContent = letter;
+            tile.classList.add('filled');
+            state.currentGuess += letter;
+            state.currentTile++;
+        }
+    }
+    
+    function deleteLetter() {
+        if (state.currentTile > 0) {
+            state.currentTile--;
+            const tile = getTile(state.currentRow, state.currentTile);
+            if (tile) {
+                tile.textContent = '';
+                tile.classList.remove('filled');
+                state.currentGuess = state.currentGuess.slice(0, -1);
             }
-            
-            // Check if answer is correct
-            if (value === answer) {
-                handleFinalAnswer(finalCard);
+        }
+    }
+    
+    function submitGuess() {
+        const puzzle = chapters[state.currentChapter].puzzles[state.currentPuzzle];
+        const answer = puzzle.answer;
+        
+        if (state.currentGuess.length !== answer.length) {
+            showMessage('Not enough letters!');
+            shakeRow();
+            return;
+        }
+        
+        state.isAnimating = true;
+        revealGuess(puzzle);
+    }
+
+    // ============================================
+    // Guess Reveal Animation
+    // ============================================
+    
+    function revealGuess(puzzle) {
+        const answer = puzzle.answer;
+        const guess = state.currentGuess;
+        const answerArray = answer.split('');
+        const guessArray = guess.split('');
+        const results = new Array(answer.length).fill('absent');
+        const usedIndices = new Set();
+        
+        // First pass: mark correct letters
+        guessArray.forEach((letter, i) => {
+            if (letter === answerArray[i]) {
+                results[i] = 'correct';
+                usedIndices.add(i);
             }
         });
-    }
-    
-    function handleFinalAnswer(card) {
-        card.classList.add('solved');
         
-        // Big celebration delay
-        setTimeout(() => {
-            showScreen('celebration');
-        }, 1000);
-    }
-
-    // ============================================
-    // Confetti Effect
-    // ============================================
-    
-    function launchConfetti() {
-        const colors = ['#e84a7f', '#ff6b9d', '#ffd700', '#ff7b7b', '#9b59b6', '#fff'];
-        const confettiCount = 100;
+        // Second pass: mark present letters
+        guessArray.forEach((letter, i) => {
+            if (results[i] === 'correct') return;
+            
+            const foundIndex = answerArray.findIndex((ansLetter, j) => 
+                ansLetter === letter && !usedIndices.has(j)
+            );
+            
+            if (foundIndex !== -1) {
+                results[i] = 'present';
+                usedIndices.add(foundIndex);
+            }
+        });
         
-        for (let i = 0; i < confettiCount; i++) {
+        // Animate reveal
+        let delay = 0;
+        guessArray.forEach((letter, i) => {
             setTimeout(() => {
-                createConfettiPiece(colors);
-            }, i * 50);
-        }
-    }
-    
-    function createConfettiPiece(colors) {
-        const confetti = document.createElement('div');
-        confetti.className = 'confetti';
-        confetti.style.left = Math.random() * 100 + 'vw';
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.width = Math.random() * 10 + 5 + 'px';
-        confetti.style.height = Math.random() * 10 + 5 + 'px';
-        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
-        confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                const tile = getTile(state.currentRow, i);
+                tile.classList.add('reveal', results[i]);
+                updateKeyboardKey(letter, results[i]);
+            }, delay);
+            delay += 300;
+        });
         
-        elements.confetti.appendChild(confetti);
-        
-        // Remove after animation
+        // After animation
         setTimeout(() => {
-            confetti.remove();
-        }, 5000);
+            state.isAnimating = false;
+            
+            if (guess === answer) {
+                handleWin();
+            } else if (state.currentRow >= 5) {
+                handleLoss(puzzle);
+            } else {
+                state.currentRow++;
+                state.currentTile = 0;
+                state.currentGuess = '';
+            }
+        }, delay + 400);
     }
-
-    // ============================================
-    // Sound Effect (Optional - Web Audio API)
-    // ============================================
     
-    function playSuccessSound() {
-        // Create a simple success tone
-        try {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-            
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
-        } catch (e) {
-            // Audio not supported, fail silently
+    function updateKeyboardKey(letter, result) {
+        const key = document.querySelector(`.key[data-key="${letter}"]`);
+        if (!key) return;
+        
+        const currentClass = key.classList.contains('correct') ? 'correct' :
+                           key.classList.contains('present') ? 'present' :
+                           key.classList.contains('absent') ? 'absent' : null;
+        
+        if (result === 'correct') {
+            key.classList.remove('present', 'absent');
+            key.classList.add('correct');
+        } else if (result === 'present' && currentClass !== 'correct') {
+            key.classList.remove('absent');
+            key.classList.add('present');
+        } else if (result === 'absent' && !currentClass) {
+            key.classList.add('absent');
         }
     }
 
     // ============================================
-    // Keyboard Navigation
+    // Win/Loss Handling
     // ============================================
     
+    function handleWin() {
+        showMessage('💕 Perfect!');
+        setTimeout(() => advanceToNext(), 1500);
+    }
+    
+    function handleLoss(puzzle) {
+        showMessage(`Answer: ${puzzle.answer}`);
+        setTimeout(() => advanceToNext(), 2500);
+    }
+    
+    function advanceToNext() {
+        const chapter = chapters[state.currentChapter];
+        
+        if (state.currentPuzzle < chapter.puzzles.length - 1) {
+            // Next puzzle in chapter
+            state.currentPuzzle++;
+            startPuzzle();
+        } else if (state.currentChapter < chapters.length - 1) {
+            // Next chapter
+            state.currentChapter++;
+            state.currentPuzzle = 0;
+            showChapterIntro();
+        } else {
+            // Game complete
+            showScreen('secret');
+        }
+    }
+
+    // ============================================
+    // Messages & Effects
+    // ============================================
+    
+    function showMessage(text) {
+        elements.message.textContent = text;
+        elements.message.classList.add('show');
+        setTimeout(() => {
+            elements.message.classList.remove('show');
+        }, 2000);
+    }
+    
+    function shakeRow() {
+        const row = elements.wordleGrid.children[state.currentRow];
+        row.style.animation = 'none';
+        row.offsetHeight;
+        row.style.animation = 'shake 0.5s ease';
+    }
+
+    // ============================================
+    // Event Listeners
+    // ============================================
+    
+    // Landing screen tap
+    screens.landing.addEventListener('click', () => {
+        showChapterIntro();
+    });
+    
+    // Chapter intro tap
+    screens.chapterIntro.addEventListener('click', () => {
+        startPuzzle();
+    });
+    
+    // Secret screen tap
+    screens.secret.addEventListener('click', () => {
+        showScreen('celebration');
+    });
+    
+    // Keyboard clicks
+    elements.keyboard.addEventListener('click', (e) => {
+        const key = e.target.closest('.key');
+        if (key) {
+            handleKeyPress(key.dataset.key);
+        }
+    });
+    
+    // Physical keyboard
     document.addEventListener('keydown', (e) => {
-        // Enter on opening screen starts the game
-        if (e.key === 'Enter' && screens.opening.classList.contains('active')) {
-            elements.startBtn.click();
+        if (state.currentScreen !== 'game') return;
+        
+        if (e.key === 'Enter') {
+            handleKeyPress('ENTER');
+        } else if (e.key === 'Backspace') {
+            handleKeyPress('BACKSPACE');
+        } else if (/^[a-zA-Z]$/.test(e.key)) {
+            handleKeyPress(e.key.toUpperCase());
         }
     });
 
     // ============================================
-    // Initialize
+    // Add shake animation
     // ============================================
     
-    initGame();
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // ============================================
+    // Start Game
+    // ============================================
+    
+    startLoading();
 });

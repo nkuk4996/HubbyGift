@@ -1,105 +1,91 @@
-# 💝 HubbyGift - A Valentine's Crossword Love Story
+# 💕 The Two of Us - A Valentine's Wordle Adventure
 
 > *"Every word led here."*
 
-A personalized Valentine's Day crossword puzzle game that walks your partner through your relationship story, one clue at a time. The final reveal? A hidden message spelled out by special letters: **I LOVE YOU**.
+A pixel-art styled Valentine's Day game that takes your partner through your relationship story via Wordle-style puzzles. Each clue reveals a moment from your journey together, and hidden letters spell out the ultimate message: **I LOVE YOU**.
 
 🔗 **[Play the Game](https://YOUR_USERNAME.github.io/HubbyGift/)**
 
 ---
 
-## 🎬 Opening Experience
+## 🎮 Game Flow
 
-The game opens with a custom animated logo reveal, complete with floating hearts and a starry background. Add your own logo by replacing `logo.png` in the root folder.
+### 1. 📊 Loading Screen
+- Animated loading bar with heart icon
+- "THENUKI AND KUKI 2026" title with pixel couple
+- Automatically transitions after loading completes
 
----
+### 2. 🧸 Landing Screen
+- "THE TWO OF US..." title
+- "PLAY ME TO WIN!" subtitle
+- **Bouncing teddy bear and hearts** animate around the screen
+- **Tap anywhere** to begin
 
-## 💌 The Storyline: "How We Got Here"
+### 3. 📖 Chapter Intros
+- Each chapter has a dramatic intro screen
+- Shows chapter number and theme
+- Tap to start the puzzles
 
-This isn't a random crossword — **each clue is a moment, habit, or feeling from your relationship**. Solving it slowly walks them through your story, and the final reveal lands emotionally.
+### 4. 🟩 Wordle Puzzles
+- Each clue presents a Wordle-style guessing game
+- Type your guess using the on-screen or physical keyboard
+- **Green** = correct letter in correct position
+- **Yellow** = correct letter in wrong position
+- **Gray** = letter not in word
+- Progress dots show puzzle completion
 
----
+### 5. ✨ Secret Message Reveal
+- Hidden letters from special answers spell out "I LOVE YOU"
+- Animated letter-by-letter reveal
 
-## 🧩 Puzzle Structure
-
-- Most answers are **single words or short phrases**
-- Each section represents a **"chapter"** of your relationship
-- Certain letters (highlighted in gold ✨) spell **I LOVE YOU** when read in order
-- Progress is tracked visually at the top
-- The final clue is locked until all others are solved
+### 6. 💕 Celebration Screen
+- "I LOVE YOU" in pixel glory
+- Bouncing hearts
+- Sweet closing message
 
 ---
 
 ## 📖 Chapters & Clues
 
 ### 🕯️ Chapter 1: The Beginning
-*Theme: First impressions, early moments*
-
 | Clue | Answer | Hidden Letter |
 |------|--------|---------------|
 | Where we first met | UNI | **I** |
 | Your first impression of me | PUZZLED | **L** |
 | The first thing I noticed about you | SMILE | — |
 
----
-
 ### 🌱 Chapter 2: The Little Things
-*Theme: Everyday intimacy*
-
 | Clue | Answer | Hidden Letter |
 |------|--------|---------------|
 | Our go-to snack | BOBA | **O** |
 | What we always forget to decide | DINNER | — |
-| Your most-used emoji with me | TURTLE | **U** |
+| Your most-used emoji with me 🐢 | TURTLE | **U** |
 | Our unspoken routine | COFFEE | — |
 
----
-
 ### 🔥 Chapter 3: Us Being Us
-*Theme: Inside jokes + quirks*
-
 | Clue | Answer | Hidden Letter |
 |------|--------|---------------|
-| Our most said word | BOMBOCLAAT | — |
+| Our most said word 😭 | BOMBOCLAAT | — |
 | What we laugh at way too much | REELS | — |
 | My favourite thing you do without realising | CARE | — |
 
----
-
 ### 🧲 Chapter 4: How You Make Me Feel
-*Theme: Emotions, safety, affection*
-
 | Clue | Answer | Hidden Letter |
 |------|--------|---------------|
 | One word that describes you | LOVELY | **V** and **Y** |
-| You make me feel… | HOME | **E** |
+| You make me feel... | HOME | **E** |
 | What I feel when you walk in | CALM | — |
 | What I never feel with you | ALONE | **O** |
 
 ---
 
-## ✨ The Hidden Message
+## ✨ Hidden Message
 
-As clues are solved, special highlighted letters reveal the secret message:
+Special letters combine to reveal:
 
 ```
 I  L  O  V  E  Y  O  U
-↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓
-UNI PUZZLED BOBA LOVELY HOME LOVELY ALONE TURTLE
 ```
-
----
-
-## 🎉 Final Reveal
-
-Once all 14 clues are solved:
-1. The final chapter **unlocks**
-2. They type the answer: **I LOVE YOU**
-3. The celebration screen appears with:
-   - Confetti animation 🎊
-   - The big reveal: "I Love You"
-   - *"Every word led here."* 🥹
-   - *"Thank you for solving this with me. I hope we keep solving life together."*
 
 ---
 
@@ -108,62 +94,74 @@ Once all 14 clues are solved:
 ### Quick Start
 
 1. **Fork or clone** this repository
-2. **Add your logo** (optional): Replace `logo.png` with your own image
+2. **Customize** the names in `index.html` (change "THENUKI AND KUKI")
 3. **Enable GitHub Pages**:
    - Go to Settings → Pages
    - Set Source to "Deploy from a branch"
    - Select `main` branch, `/ (root)` folder
    - Click Save
-4. **Share the link** with your partner! 💕
+4. **Wait ~1 minute** for deployment
+5. **Share the link** with your partner! 💕
 
 ### File Structure
 
 ```
 HubbyGift/
-├── index.html      # Main game structure
-├── styles.css      # Romantic styling & animations
-├── script.js       # Game logic & interactivity
-├── logo.png        # Your custom logo (optional)
+├── index.html      # Game screens & structure
+├── styles.css      # Pixel art styling & animations
+├── script.js       # Game logic & Wordle mechanics
 └── README.md       # This file
 ```
 
-### Customizing Clues
+### Customizing
 
-To change the clues and answers, edit `index.html`:
-1. Find each `<div class="clue-card">` element
-2. Update the `data-answer` attribute
-3. Update the `.clue-text` paragraph
-4. Adjust the `.letter-box` elements to match your answer
+#### Change Names
+In `index.html`, find and replace:
+```html
+<h1 class="pixel-title">THENUKI AND KUKI</h1>
+```
 
-If changing answers with hidden letters, also update the `specialLetters` mapping in `script.js`.
+#### Change Clues & Answers
+In `script.js`, edit the `chapters` array:
+```javascript
+const chapters = [
+    {
+        number: 1,
+        title: "THE BEGINNING",
+        puzzles: [
+            { clue: "Your clue here", answer: "ANSWER", special: null },
+            // special: index of letter to highlight (0-based), or null
+        ]
+    },
+    // ...
+];
+```
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **HTML5** — Semantic structure
-- **CSS3** — Animations, gradients, responsive design
-- **Vanilla JavaScript** — No dependencies needed
+- **CSS3** — Pixel art theme, animations, responsive
+- **Vanilla JavaScript** — No dependencies
+- **Press Start 2P** — Pixel font from Google Fonts
 - **GitHub Pages** — Free hosting
 
 ---
 
 ## 🎨 Design Features
 
-- 🌙 Deep romantic color palette (rose, gold, purple)
-- ✨ Smooth animations throughout
-- 📱 Fully responsive (mobile-friendly)
-- ♿ Accessible (keyboard navigation, reduced motion support)
-- 🔊 Subtle success sounds (Web Audio API)
+- 👾 Retro pixel art aesthetic
+- 🧸 Bouncing animated elements
+- ⌨️ Full keyboard support (on-screen + physical)
+- 📱 Mobile-friendly with touch support
+- 🎵 Smooth transitions between screens
+- 🏆 Wordle-style feedback system
 
 ---
 
 ## 💖 Made With Love
 
-*A personalized gift from me to you.*
+*For Thenuki, from Kuki — 2026*
 
 ---
-
-## 📝 License
-
-This project is open source and available for personal use. Feel free to customize it for your own Valentine! 💕
