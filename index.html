@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Love Story in Words 💝</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Opening Animation Screen -->
+    <div id="opening-screen" class="screen active">
+        <div class="stars"></div>
+        <div class="opening-content">
+            <div class="logo-container">
+                <img src="logo.png" alt="Our Love Story" class="logo" onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='flex';">
+                <div class="logo-fallback" style="display: none;">
+                    <span class="heart-icon">💝</span>
+                </div>
+            </div>
+            <h1 class="title">How We Got Here</h1>
+            <p class="subtitle">A crossword journey through our story</p>
+            <button id="start-btn" class="btn-start">
+                <span>Begin Our Story</span>
+                <span class="btn-hearts">💕</span>
+            </button>
+        </div>
+        <div class="floating-hearts">
+            <span class="float-heart" style="--delay: 0s; --x: 10%;">♥</span>
+            <span class="float-heart" style="--delay: 2s; --x: 25%;">♥</span>
+            <span class="float-heart" style="--delay: 4s; --x: 45%;">♥</span>
+            <span class="float-heart" style="--delay: 1s; --x: 65%;">♥</span>
+            <span class="float-heart" style="--delay: 3s; --x: 85%;">♥</span>
+        </div>
+    </div>
+
+    <!-- Main Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="game-container">
+            <header class="game-header">
+                <h2>💌 How We Got Here</h2>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <span class="progress-text" id="progress-text">0 / 14</span>
+                </div>
+            </header>
+
+            <div class="chapters-container">
+                <!-- Chapter 1 -->
+                <section class="chapter" id="chapter-1">
+                    <div class="chapter-header">
+                        <span class="chapter-icon">🕯️</span>
+                        <h3>Chapter 1: The Beginning</h3>
+                        <p class="chapter-theme">First impressions, early moments</p>
+                    </div>
+                    <div class="clues">
+                        <div class="clue-card" data-answer="UNI" data-highlight="2">
+                            <p class="clue-text">Where we first met</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="3" class="letter-input" data-length="3" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">U</span>
+                                    <span class="letter-box highlight">N</span>
+                                    <span class="letter-box special" data-letter="I">I</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="clue-card" data-answer="PUZZLED" data-highlight="4">
+                            <p class="clue-text">Your first impression of me</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="7" class="letter-input" data-length="7" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">P</span>
+                                    <span class="letter-box">U</span>
+                                    <span class="letter-box">Z</span>
+                                    <span class="letter-box">Z</span>
+                                    <span class="letter-box special" data-letter="L">L</span>
+                                    <span class="letter-box">E</span>
+                                    <span class="letter-box">D</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="clue-card" data-answer="SMILE">
+                            <p class="clue-text">The first thing I noticed about you</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="5" class="letter-input" data-length="5" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">S</span>
+                                    <span class="letter-box">M</span>
+                                    <span class="letter-box">I</span>
+                                    <span class="letter-box">L</span>
+                                    <span class="letter-box">E</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Chapter 2 -->
+                <section class="chapter" id="chapter-2">
+                    <div class="chapter-header">
+                        <span class="chapter-icon">🌱</span>
+                        <h3>Chapter 2: The Little Things</h3>
+                        <p class="chapter-theme">Everyday intimacy</p>
+                    </div>
+                    <div class="clues">
+                        <div class="clue-card" data-answer="BOBA" data-highlight="1">
+                            <p class="clue-text">Our go-to snack</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="4" class="letter-input" data-length="4" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">B</span>
+                                    <span class="letter-box special" data-letter="O">O</span>
+                                    <span class="letter-box">B</span>
+                                    <span class="letter-box">A</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="clue-card" data-answer="DINNER">
+                            <p class="clue-text">What we always forget to decide</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="6" class="letter-input" data-length="6" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">D</span>
+                                    <span class="letter-box">I</span>
+                                    <span class="letter-box">N</span>
+                                    <span class="letter-box">N</span>
+                                    <span class="letter-box">E</span>
+                                    <span class="letter-box">R</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="clue-card" data-answer="TURTLE" data-highlight="1">
+                            <p class="clue-text">Your most-used emoji with me</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="6" class="letter-input" data-length="6" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">T</span>
+                                    <span class="letter-box special" data-letter="U">U</span>
+                                    <span class="letter-box">R</span>
+                                    <span class="letter-box">T</span>
+                                    <span class="letter-box">L</span>
+                                    <span class="letter-box">E</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="clue-card" data-answer="COFFEE">
+                            <p class="clue-text">Our unspoken routine</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="6" class="letter-input" data-length="6" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">C</span>
+                                    <span class="letter-box">O</span>
+                                    <span class="letter-box">F</span>
+                                    <span class="letter-box">F</span>
+                                    <span class="letter-box">E</span>
+                                    <span class="letter-box">E</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Chapter 3 -->
+                <section class="chapter" id="chapter-3">
+                    <div class="chapter-header">
+                        <span class="chapter-icon">🔥</span>
+                        <h3>Chapter 3: Us Being Us</h3>
+                        <p class="chapter-theme">Inside jokes + quirks</p>
+                    </div>
+                    <div class="clues">
+                        <div class="clue-card" data-answer="BOMBOCLAAT">
+                            <p class="clue-text">Our most said word</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="10" class="letter-input" data-length="10" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">B</span>
+                                    <span class="letter-box">O</span>
+                                    <span class="letter-box">M</span>
+                                    <span class="letter-box">B</span>
+                                    <span class="letter-box">O</span>
+                                    <span class="letter-box">C</span>
+                                    <span class="letter-box">L</span>
+                                    <span class="letter-box">A</span>
+                                    <span class="letter-box">A</span>
+                                    <span class="letter-box">T</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="clue-card" data-answer="REELS">
+                            <p class="clue-text">What we laugh at way too much</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="5" class="letter-input" data-length="5" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">R</span>
+                                    <span class="letter-box">E</span>
+                                    <span class="letter-box">E</span>
+                                    <span class="letter-box">L</span>
+                                    <span class="letter-box">S</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="clue-card" data-answer="CARE">
+                            <p class="clue-text">My favourite thing you do without realising</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="4" class="letter-input" data-length="4" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">C</span>
+                                    <span class="letter-box">A</span>
+                                    <span class="letter-box">R</span>
+                                    <span class="letter-box">E</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Chapter 4 -->
+                <section class="chapter" id="chapter-4">
+                    <div class="chapter-header">
+                        <span class="chapter-icon">🧲</span>
+                        <h3>Chapter 4: How You Make Me Feel</h3>
+                        <p class="chapter-theme">Emotions, safety, affection</p>
+                    </div>
+                    <div class="clues">
+                        <div class="clue-card" data-answer="LOVELY" data-highlight="2">
+                            <p class="clue-text">One word that describes you</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="6" class="letter-input" data-length="6" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">L</span>
+                                    <span class="letter-box">O</span>
+                                    <span class="letter-box special" data-letter="V">V</span>
+                                    <span class="letter-box">E</span>
+                                    <span class="letter-box">L</span>
+                                    <span class="letter-box special" data-letter="Y">Y</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="clue-card" data-answer="HOME" data-highlight="3">
+                            <p class="clue-text">You make me feel…</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="4" class="letter-input" data-length="4" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">H</span>
+                                    <span class="letter-box">O</span>
+                                    <span class="letter-box">M</span>
+                                    <span class="letter-box special" data-letter="E">E</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="clue-card" data-answer="CALM">
+                            <p class="clue-text">What I feel when you walk in</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="4" class="letter-input" data-length="4" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">C</span>
+                                    <span class="letter-box">A</span>
+                                    <span class="letter-box">L</span>
+                                    <span class="letter-box">M</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="clue-card" data-answer="ALONE" data-highlight="2">
+                            <p class="clue-text">What I never feel with you</p>
+                            <div class="answer-input">
+                                <input type="text" maxlength="5" class="letter-input" data-length="5" autocomplete="off" spellcheck="false">
+                                <div class="letter-boxes">
+                                    <span class="letter-box">A</span>
+                                    <span class="letter-box">L</span>
+                                    <span class="letter-box special" data-letter="O">O</span>
+                                    <span class="letter-box">N</span>
+                                    <span class="letter-box">E</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Hidden Message Tracker -->
+                <div class="secret-message-container" id="secret-tracker">
+                    <p class="secret-label">Hidden message forming...</p>
+                    <div class="secret-letters">
+                        <span class="secret-letter" data-index="0">?</span>
+                        <span class="secret-letter" data-index="1">?</span>
+                        <span class="secret-letter" data-index="2">?</span>
+                        <span class="secret-letter" data-index="3">?</span>
+                        <span class="secret-letter" data-index="4">?</span>
+                        <span class="secret-letter" data-index="5">?</span>
+                        <span class="secret-letter" data-index="6">?</span>
+                        <span class="secret-letter" data-index="7">?</span>
+                    </div>
+                </div>
+
+                <!-- Final Clue (locked until all others solved) -->
+                <section class="chapter final-chapter" id="final-chapter">
+                    <div class="lock-overlay" id="lock-overlay">
+                        <span class="lock-icon">🔒</span>
+                        <p>Solve all clues to unlock</p>
+                    </div>
+                    <div class="chapter-header">
+                        <span class="chapter-icon">✨</span>
+                        <h3>The Final Reveal</h3>
+                        <p class="chapter-theme">What all of this has been leading to</p>
+                    </div>
+                    <div class="clues">
+                        <div class="clue-card final-clue" data-answer="I LOVE YOU">
+                            <p class="clue-text">What every word has been spelling out...</p>
+                            <div class="answer-input final-input">
+                                <input type="text" maxlength="10" class="letter-input" data-length="10" autocomplete="off" spellcheck="false" disabled>
+                                <div class="letter-boxes final-boxes">
+                                    <span class="letter-box">I</span>
+                                    <span class="letter-box space"></span>
+                                    <span class="letter-box">L</span>
+                                    <span class="letter-box">O</span>
+                                    <span class="letter-box">V</span>
+                                    <span class="letter-box">E</span>
+                                    <span class="letter-box space"></span>
+                                    <span class="letter-box">Y</span>
+                                    <span class="letter-box">O</span>
+                                    <span class="letter-box">U</span>
+                                </div>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Celebration Screen -->
+    <div id="celebration-screen" class="screen">
+        <div class="celebration-content">
+            <div class="confetti-container" id="confetti"></div>
+            <div class="celebration-text">
+                <h1 class="reveal-text">I Love You</h1>
+                <p class="reveal-subtitle">Every word led here. 🥹</p>
+                <div class="final-note">
+                    <p>"Thank you for solving this with me.</p>
+                    <p>I hope we keep solving life together."</p>
+                </div>
+                <div class="heart-burst">
+                    <span>💕</span>
+                    <span>💖</span>
+                    <span>💝</span>
+                    <span>💗</span>
+                    <span>💕</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
