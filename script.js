@@ -10,40 +10,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const chapters = [
         {
             number: 1,
-            title: "THE BEGINNING",
             puzzles: [
-                { clue: "Where we first met", answer: "UNI", special: 2 },
-                { clue: "Your first impression of me", answer: "PUZZLED", special: 4 },
-                { clue: "The first thing I noticed about you", answer: "SMILE", special: null }
-            ]
-        },
-        {
-            number: 2,
-            title: "THE LITTLE THINGS",
-            puzzles: [
-                { clue: "Our go-to snack", answer: "BOBA", special: 1 },
-                { clue: "What we always forget to decide", answer: "DINNER", special: null },
-                { clue: "Your most-used emoji with me 🐢", answer: "TURTLE", special: 1 },
-                { clue: "Our unspoken routine", answer: "COFFEE", special: null }
-            ]
-        },
-        {
-            number: 3,
-            title: "US BEING US",
-            puzzles: [
-                { clue: "Our most said word 😭", answer: "BOMBOCLAAT", special: null },
-                { clue: "What we laugh at way too much", answer: "REELS", special: null },
-                { clue: "My favourite thing you do without realising", answer: "CARE", special: null }
-            ]
-        },
-        {
-            number: 4,
-            title: "HOW YOU MAKE ME FEEL",
-            puzzles: [
-                { clue: "One word that describes you", answer: "LOVELY", special: [2, 5] },
-                { clue: "You make me feel...", answer: "HOME", special: 3 },
-                { clue: "What I feel when you walk in", answer: "CALM", special: null },
-                { clue: "What I never feel with you", answer: "ALONE", special: 2 }
+                {
+                    clue: "We first met at:",
+                    answer: "UNI"
+                },
+                {
+                    clue: "The first thing I noticed about you was your:",
+                    answer: "SMILE"
+                },
+                {
+                    clue: "Our go to snack is:",
+                    answer: "BOBA"
+                },
+                {
+                    clue: "Our most-used emoji is a:.",
+                    answer: "TURTLE"
+                },
+                {
+                    clue: "My favourite routine with you is getting:",
+                    answer: "COFFEE"
+                }
             ]
         }
     ];
@@ -59,7 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
         currentRow: 0,
         currentTile: 0,
         currentGuess: '',
-        isAnimating: false
+        isAnimating: false,
+        floatingElements: [],
+        floatingAnimationId: null,
+        landingAvoidRect: null,
+        secretOpenedCount: 0,
+        secretTotal: 0
     };
 
     // ============================================
@@ -69,24 +61,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const screens = {
         loading: document.getElementById('loading-screen'),
         landing: document.getElementById('landing-screen'),
-        chapterIntro: document.getElementById('chapter-intro-screen'),
         game: document.getElementById('game-screen'),
         secret: document.getElementById('secret-screen'),
+        puzzle: document.getElementById('puzzle-screen'),
         celebration: document.getElementById('celebration-screen')
     };
 
     const elements = {
         loadingFill: document.getElementById('loading-fill'),
-        chapterNumber: document.getElementById('chapter-number'),
-        chapterTitle: document.getElementById('chapter-title'),
-        gameTitle: document.getElementById('game-title'),
-        gameSubtitle: document.getElementById('game-subtitle'),
-        progressDots: document.getElementById('progress-dots'),
-        progressText: document.getElementById('progress-text'),
-        clueText: document.getElementById('clue-text'),
-        wordleGrid: document.getElementById('wordle-grid'),
-        keyboard: document.getElementById('keyboard'),
-        message: document.getElementById('message')
+        crosswordContainer: document.getElementById('crossword-container'),
+        crosswordProgressText: document.getElementById('crossword-progress-text'),
+        puzzleGrid: document.getElementById('puzzle-grid'),
+        envelopeGrid: document.getElementById('envelope-grid'),
+        secretInstruction: document.getElementById('secret-instruction')
     };
 
     // ============================================
@@ -99,6 +86,134 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         screens[screenName].classList.add('active');
         state.currentScreen = screenName;
+
+        // Start or stop floating animation on the landing screen
+        if (screenName === 'landing') {
+            setupLandingFloat();
+        }
+    }
+
+    // ============================================
+    // Landing Screen Floating Animation
+    // ============================================
+
+    function setupLandingFloat() {
+        const container = screens.landing;
+        if (!container) return;
+
+        // Cancel any previous animation
+        if (state.floatingAnimationId !== null) {
+            cancelAnimationFrame(state.floatingAnimationId);
+            state.floatingAnimationId = null;
+        }
+
+        state.floatingElements = [];
+
+        // Compute area to avoid (the main text block)
+        const content = container.querySelector('.landing-content');
+        if (content) {
+            const cRect = content.getBoundingClientRect();
+            const rRect = container.getBoundingClientRect();
+            state.landingAvoidRect = {
+                left: cRect.left - rRect.left - 40,
+                right: cRect.right - rRect.left + 40,
+                top: cRect.top - rRect.top - 40,
+                bottom: cRect.bottom - rRect.top + 40
+            };
+        } else {
+            state.landingAvoidRect = null;
+        }
+
+        const items = container.querySelectorAll('.teddy-image, .sparkle');
+        const rect = container.getBoundingClientRect();
+        const padding = 60; // keep away from edges a bit
+
+        items.forEach((el) => {
+            // Make sure elements are absolutely positioned
+            el.style.position = 'absolute';
+            el.style.bottom = 'auto';
+
+            const maxX = Math.max(0, rect.width - padding);
+            const maxY = Math.max(0, rect.height - padding);
+
+            const startX = Math.random() * maxX;
+            const startY = Math.random() * maxY;
+
+            el.style.left = `${startX}px`;
+            el.style.top = `${startY}px`;
+
+            const speed = 0.4 + Math.random() * 0.6; // px per frame
+            const angle = Math.random() * Math.PI * 2;
+
+            state.floatingElements.push({
+                el,
+                x: startX,
+                y: startY,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed
+            });
+        });
+
+        if (state.floatingElements.length > 0) {
+            animateLandingFloat();
+        }
+    }
+
+    function animateLandingFloat() {
+        if (state.currentScreen !== 'landing') {
+            state.floatingAnimationId = null;
+            return;
+        }
+
+        const container = screens.landing;
+        const rect = container.getBoundingClientRect();
+        const margin = 40; // keep inside bounds a little
+        const avoid = state.landingAvoidRect;
+
+        state.floatingElements.forEach(item => {
+            item.x += item.vx;
+            item.y += item.vy;
+
+            const maxX = rect.width - margin;
+            const maxY = rect.height - margin;
+
+            if (item.x <= margin || item.x >= maxX) {
+                item.vx *= -1;
+                item.x = Math.max(margin, Math.min(item.x, maxX));
+            }
+            if (item.y <= margin || item.y >= maxY) {
+                item.vy *= -1;
+                item.y = Math.max(margin, Math.min(item.y, maxY));
+            }
+
+            // Avoid central text region by bouncing away
+            if (avoid) {
+                const size = 40; // rough size of icon
+                const itemLeft = item.x;
+                const itemRight = item.x + size;
+                const itemTop = item.y;
+                const itemBottom = item.y + size;
+
+                const overlap =
+                    itemRight > avoid.left &&
+                    itemLeft < avoid.right &&
+                    itemBottom > avoid.top &&
+                    itemTop < avoid.bottom;
+
+                if (overlap) {
+                    // Push element back and invert direction
+                    item.x -= item.vx * 4;
+                    item.y -= item.vy * 4;
+                    item.vx *= -1;
+                    item.vy *= -1;
+                }
+            }
+
+            item.el.style.left = `${item.x}px`;
+            item.el.style.top = `${item.y}px`;
+        });
+
+        state.floatingAnimationId = requestAnimationFrame(animateLandingFloat);
     }
 
     // ============================================
@@ -125,339 +240,280 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================
-    // Chapter & Puzzle Navigation
+    // Crossword Construction & Logic
     // ============================================
-    
-    function showChapterIntro() {
-        const chapter = chapters[state.currentChapter];
-        elements.chapterNumber.textContent = `CHAPTER ${chapter.number}`;
-        elements.chapterTitle.textContent = chapter.title;
-        showScreen('chapterIntro');
-    }
-    
-    function startPuzzle() {
-        const chapter = chapters[state.currentChapter];
-        const puzzle = chapter.puzzles[state.currentPuzzle];
-        
-        // Update header
-        elements.gameTitle.textContent = `CHAPTER ${chapter.number}`;
-        elements.gameSubtitle.textContent = chapter.title;
-        elements.clueText.textContent = puzzle.clue;
-        
-        // Update progress
-        updateProgressIndicator();
-        
-        // Create grid
-        createWordleGrid(puzzle.answer.length);
-        
-        // Reset keyboard
-        document.querySelectorAll('.key').forEach(key => {
-            key.classList.remove('correct', 'present', 'absent');
+
+    const allClues = [];
+    chapters.forEach((chapter, chapterIndex) => {
+        chapter.puzzles.forEach((puzzle, puzzleIndex) => {
+            allClues.push({
+                chapterTitle: chapter.title,
+                clue: puzzle.clue,
+                answer: puzzle.answer,
+                chapterIndex,
+                puzzleIndex
+            });
         });
-        
-        // Reset state
-        state.currentRow = 0;
-        state.currentTile = 0;
-        state.currentGuess = '';
-        
-        showScreen('game');
-    }
-    
-    function updateProgressIndicator() {
-        const chapter = chapters[state.currentChapter];
-        const total = chapter.puzzles.length;
-        const current = state.currentPuzzle + 1;
-        
-        elements.progressText.textContent = `Puzzle ${current} of ${total}`;
-        
-        elements.progressDots.innerHTML = '';
-        chapter.puzzles.forEach((_, index) => {
-            const dot = document.createElement('div');
-            dot.className = 'progress-dot';
-            if (index < state.currentPuzzle) {
-                dot.classList.add('completed');
-            } else if (index === state.currentPuzzle) {
-                dot.classList.add('current');
+    });
+
+    function buildCrossword() {
+        if (!elements.crosswordContainer) return;
+
+        elements.crosswordContainer.innerHTML = '';
+        let solvedCount = 0;
+
+        const chapterGroups = new Map();
+        allClues.forEach((entry, idx) => {
+            if (!chapterGroups.has(entry.chapterTitle)) {
+                chapterGroups.set(entry.chapterTitle, []);
             }
-            elements.progressDots.appendChild(dot);
+            chapterGroups.get(entry.chapterTitle).push({ ...entry, index: idx + 1 });
         });
+
+        chapterGroups.forEach((clues, chapterTitle) => {
+            const chapterBlock = document.createElement('div');
+
+            const chapterHeading = document.createElement('div');
+            chapterHeading.className = 'crossword-chapter-title';
+            chapterHeading.textContent = chapterTitle;
+            chapterBlock.appendChild(chapterHeading);
+
+            clues.forEach((entry) => {
+                const row = document.createElement('div');
+                row.className = 'crossword-row';
+                row.dataset.answer = entry.answer.toUpperCase();
+
+                const label = document.createElement('div');
+                label.className = 'crossword-label';
+                label.textContent = entry.index;
+                row.appendChild(label);
+
+                const wordWrapper = document.createElement('div');
+                wordWrapper.className = 'crossword-word';
+
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'text';
+                hiddenInput.maxLength = entry.answer.length;
+                hiddenInput.className = 'crossword-input';
+                wordWrapper.appendChild(hiddenInput);
+
+                const boxes = [];
+                for (let i = 0; i < entry.answer.length; i++) {
+                    const box = document.createElement('div');
+                    box.className = 'crossword-box';
+                    wordWrapper.appendChild(box);
+                    boxes.push(box);
+                }
+
+                row.appendChild(wordWrapper);
+
+                const clueEl = document.createElement('div');
+                clueEl.className = 'crossword-clue';
+                clueEl.textContent = entry.clue;
+                row.appendChild(clueEl);
+
+                elements.crosswordContainer.appendChild(row);
+
+                hiddenInput.addEventListener('input', () => {
+                    const value = hiddenInput.value.toUpperCase();
+                    const answer = entry.answer.toUpperCase();
+
+                    for (let i = 0; i < boxes.length; i++) {
+                        boxes[i].textContent = value[i] || '';
+                    }
+
+                    if (value.length === answer.length && value === answer && !row.classList.contains('solved')) {
+                        row.classList.add('solved');
+                        hiddenInput.disabled = true;
+                        solvedCount += 1;
+                        updateCrosswordProgress(solvedCount);
+
+                        if (solvedCount === allClues.length) {
+                            setTimeout(() => showScreen('secret'), 800);
+                        }
+                    }
+                });
+
+                row.addEventListener('click', () => {
+                    if (hiddenInput.disabled) return;
+                    hiddenInput.focus();
+                });
+            });
+
+            elements.crosswordContainer.appendChild(chapterBlock);
+        });
+
+        updateCrosswordProgress(0);
+    }
+
+    function updateCrosswordProgress(solvedCount) {
+        if (!elements.crosswordProgressText) return;
+        elements.crosswordProgressText.textContent = `${solvedCount} / ${allClues.length} clues solved`;
     }
 
     // ============================================
-    // Wordle Grid
+    // Image Puzzle (4x4) using thenukes.png
     // ============================================
-    
-    function createWordleGrid(wordLength) {
-        elements.wordleGrid.innerHTML = '';
-        const maxAttempts = 6;
-        
-        for (let row = 0; row < maxAttempts; row++) {
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'wordle-row';
-            
-            for (let col = 0; col < wordLength; col++) {
-                const tile = document.createElement('div');
-                tile.className = 'wordle-tile';
-                tile.dataset.row = row;
-                tile.dataset.col = col;
-                rowDiv.appendChild(tile);
-            }
-            
-            elements.wordleGrid.appendChild(rowDiv);
-        }
-    }
-    
-    function getTile(row, col) {
-        return document.querySelector(
-            `.wordle-tile[data-row="${row}"][data-col="${col}"]`
-        );
+
+    function initPuzzle() {
+        const grid = elements.puzzleGrid;
+        if (!grid) return;
+
+        const size = 4;
+        const total = size * size;
+        grid.innerHTML = '';
+
+        const indices = Array.from({ length: total }, (_, i) => i);
+        shuffle(indices);
+
+        indices.forEach((correctIndex) => {
+            const tile = document.createElement('div');
+            tile.className = 'puzzle-tile';
+            tile.draggable = true;
+            tile.dataset.correctIndex = String(correctIndex);
+
+            const row = Math.floor(correctIndex / size);
+            const col = correctIndex % size;
+            const posX = (col / (size - 1)) * 100;
+            const posY = (row / (size - 1)) * 100;
+            tile.style.backgroundPosition = `${posX}% ${posY}%`;
+
+            grid.appendChild(tile);
+        });
+
+        enablePuzzleDragAndDrop(grid, size);
     }
 
     // ============================================
-    // Keyboard Input
+    // Secret Envelopes Logic
     // ============================================
-    
-    function handleKeyPress(key) {
-        if (state.isAnimating) return;
-        
-        const puzzle = chapters[state.currentChapter].puzzles[state.currentPuzzle];
-        const wordLength = puzzle.answer.length;
-        
-        if (key === 'BACKSPACE') {
-            deleteLetter();
-        } else if (key === 'ENTER') {
-            submitGuess();
-        } else if (state.currentTile < wordLength && /^[A-Z]$/.test(key)) {
-            addLetter(key);
-        }
-    }
-    
-    function addLetter(letter) {
-        const tile = getTile(state.currentRow, state.currentTile);
-        if (tile) {
-            tile.textContent = letter;
-            tile.classList.add('filled');
-            state.currentGuess += letter;
-            state.currentTile++;
-        }
-    }
-    
-    function deleteLetter() {
-        if (state.currentTile > 0) {
-            state.currentTile--;
-            const tile = getTile(state.currentRow, state.currentTile);
-            if (tile) {
-                tile.textContent = '';
-                tile.classList.remove('filled');
-                state.currentGuess = state.currentGuess.slice(0, -1);
-            }
-        }
-    }
-    
-    function submitGuess() {
-        const puzzle = chapters[state.currentChapter].puzzles[state.currentPuzzle];
-        const answer = puzzle.answer;
-        
-        if (state.currentGuess.length !== answer.length) {
-            showMessage('Not enough letters!');
-            shakeRow();
-            return;
-        }
-        
-        state.isAnimating = true;
-        revealGuess(puzzle);
+
+    const SECRET_MESSAGE = 'ILOVEYOU';
+
+    function initEnvelopes() {
+        const grid = elements.envelopeGrid;
+        if (!grid) return;
+
+        grid.innerHTML = '';
+        state.secretOpenedCount = 0;
+        state.secretTotal = SECRET_MESSAGE.length;
+
+        const chars = SECRET_MESSAGE.split('');
+
+        chars.forEach((ch, index) => {
+            const env = document.createElement('div');
+            env.className = 'envelope';
+            env.dataset.index = String(index);
+
+            const span = document.createElement('span');
+            span.className = 'envelope-letter';
+            span.textContent = ch;
+
+            env.appendChild(span);
+            grid.appendChild(env);
+
+            env.addEventListener('click', () => {
+                if (!env.classList.contains('opened')) {
+                    env.classList.add('opened');
+                    state.secretOpenedCount += 1;
+                    if (state.secretOpenedCount === state.secretTotal) {
+                        if (elements.secretInstruction) {
+                            elements.secretInstruction.textContent = 'That\'s the message. Hold this moment for a second...';
+                        }
+
+                        // Keep the envelope screen visible for 5 seconds,
+                        // then move on to the puzzle automatically.
+                        setTimeout(() => {
+                            handleSecretContinueOnce();
+                        }, 5000);
+                    }
+                }
+            });
+        });
     }
 
-    // ============================================
-    // Guess Reveal Animation
-    // ============================================
-    
-    function revealGuess(puzzle) {
-        const answer = puzzle.answer;
-        const guess = state.currentGuess;
-        const answerArray = answer.split('');
-        const guessArray = guess.split('');
-        const results = new Array(answer.length).fill('absent');
-        const usedIndices = new Set();
-        
-        // First pass: mark correct letters
-        guessArray.forEach((letter, i) => {
-            if (letter === answerArray[i]) {
-                results[i] = 'correct';
-                usedIndices.add(i);
-            }
-        });
-        
-        // Second pass: mark present letters
-        guessArray.forEach((letter, i) => {
-            if (results[i] === 'correct') return;
-            
-            const foundIndex = answerArray.findIndex((ansLetter, j) => 
-                ansLetter === letter && !usedIndices.has(j)
-            );
-            
-            if (foundIndex !== -1) {
-                results[i] = 'present';
-                usedIndices.add(foundIndex);
-            }
-        });
-        
-        // Animate reveal
-        let delay = 0;
-        guessArray.forEach((letter, i) => {
-            setTimeout(() => {
-                const tile = getTile(state.currentRow, i);
-                tile.classList.add('reveal', results[i]);
-                updateKeyboardKey(letter, results[i]);
-            }, delay);
-            delay += 300;
-        });
-        
-        // After animation
-        setTimeout(() => {
-            state.isAnimating = false;
-            
-            if (guess === answer) {
-                handleWin();
-            } else if (state.currentRow >= 5) {
-                handleLoss(puzzle);
-            } else {
-                state.currentRow++;
-                state.currentTile = 0;
-                state.currentGuess = '';
-            }
-        }, delay + 400);
-    }
-    
-    function updateKeyboardKey(letter, result) {
-        const key = document.querySelector(`.key[data-key="${letter}"]`);
-        if (!key) return;
-        
-        const currentClass = key.classList.contains('correct') ? 'correct' :
-                           key.classList.contains('present') ? 'present' :
-                           key.classList.contains('absent') ? 'absent' : null;
-        
-        if (result === 'correct') {
-            key.classList.remove('present', 'absent');
-            key.classList.add('correct');
-        } else if (result === 'present' && currentClass !== 'correct') {
-            key.classList.remove('absent');
-            key.classList.add('present');
-        } else if (result === 'absent' && !currentClass) {
-            key.classList.add('absent');
-        }
+    function handleSecretContinueOnce() {
+        showScreen('puzzle');
     }
 
-    // ============================================
-    // Win/Loss Handling
-    // ============================================
-    
-    function handleWin() {
-        showMessage('💕 Perfect!');
-        setTimeout(() => advanceToNext(), 1500);
+    function enablePuzzleDragAndDrop(grid, size) {
+        let dragSrc = null;
+
+        grid.addEventListener('dragstart', (e) => {
+            const target = e.target;
+            if (!(target instanceof HTMLElement) || !target.classList.contains('puzzle-tile')) return;
+            dragSrc = target;
+            e.dataTransfer?.setData('text/plain', '');
+        });
+
+        grid.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        grid.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const target = e.target;
+            if (!dragSrc || !(target instanceof HTMLElement) || !target.classList.contains('puzzle-tile') || dragSrc === target) {
+                return;
+            }
+
+            swapTiles(dragSrc, target);
+            dragSrc = null;
+
+            if (isPuzzleSolved(grid)) {
+                handlePuzzleComplete();
+            }
+        });
     }
-    
-    function handleLoss(puzzle) {
-        showMessage(`Answer: ${puzzle.answer}`);
-        setTimeout(() => advanceToNext(), 2500);
-    }
-    
-    function advanceToNext() {
-        const chapter = chapters[state.currentChapter];
-        
-        if (state.currentPuzzle < chapter.puzzles.length - 1) {
-            // Next puzzle in chapter
-            state.currentPuzzle++;
-            startPuzzle();
-        } else if (state.currentChapter < chapters.length - 1) {
-            // Next chapter
-            state.currentChapter++;
-            state.currentPuzzle = 0;
-            showChapterIntro();
+
+    function swapTiles(a, b) {
+        const parent = a.parentNode;
+        if (!parent || parent !== b.parentNode) return;
+
+        const aNext = a.nextSibling === b ? a : a.nextSibling;
+        parent.insertBefore(a, b);
+        if (aNext) {
+            parent.insertBefore(b, aNext);
         } else {
-            // Game complete
-            showScreen('secret');
+            parent.appendChild(b);
         }
     }
 
-    // ============================================
-    // Messages & Effects
-    // ============================================
-    
-    function showMessage(text) {
-        elements.message.textContent = text;
-        elements.message.classList.add('show');
+    function isPuzzleSolved(grid) {
+        const tiles = Array.from(grid.querySelectorAll('.puzzle-tile'));
+        return tiles.every((tile, index) => tile.dataset.correctIndex === String(index));
+    }
+
+    function handlePuzzleComplete() {
+        const msg = document.createElement('div');
+        msg.className = 'puzzle-complete-message';
+        msg.textContent = 'Perfect. That\'s us. 💕';
+        elements.puzzleGrid.parentElement?.appendChild(msg);
+
         setTimeout(() => {
-            elements.message.classList.remove('show');
-        }, 2000);
-    }
-    
-    function shakeRow() {
-        const row = elements.wordleGrid.children[state.currentRow];
-        row.style.animation = 'none';
-        row.offsetHeight;
-        row.style.animation = 'shake 0.5s ease';
+            showScreen('celebration');
+        }, 5000);
     }
 
-    // ============================================
-    // Event Listeners
-    // ============================================
-    
-    // Landing screen tap
-    screens.landing.addEventListener('click', () => {
-        showChapterIntro();
-    });
-    
-    // Chapter intro tap
-    screens.chapterIntro.addEventListener('click', () => {
-        startPuzzle();
-    });
-    
-    // Secret screen tap
-    screens.secret.addEventListener('click', () => {
-        showScreen('celebration');
-    });
-    
-    // Keyboard clicks
-    elements.keyboard.addEventListener('click', (e) => {
-        const key = e.target.closest('.key');
-        if (key) {
-            handleKeyPress(key.dataset.key);
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
-    });
-    
-    // Physical keyboard
-    document.addEventListener('keydown', (e) => {
-        if (state.currentScreen !== 'game') return;
-        
-        if (e.key === 'Enter') {
-            handleKeyPress('ENTER');
-        } else if (e.key === 'Backspace') {
-            handleKeyPress('BACKSPACE');
-        } else if (/^[a-zA-Z]$/.test(e.key)) {
-            handleKeyPress(e.key.toUpperCase());
-        }
-    });
-
-    // ============================================
-    // Add shake animation
-    // ============================================
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-5px); }
-            40% { transform: translateX(5px); }
-            60% { transform: translateX(-5px); }
-            80% { transform: translateX(5px); }
-        }
-    `;
-    document.head.appendChild(style);
+        return arr;
+    }
 
     // ============================================
     // Start Game
-    // ============================================
+    // ============================================ 
     
+    // Landing screen tap -> crossword
+    screens.landing.addEventListener('click', () => {
+        showScreen('game');
+    });
+
+    buildCrossword();
+    initPuzzle();
+    initEnvelopes();
     startLoading();
 });
