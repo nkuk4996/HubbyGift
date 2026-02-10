@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         indices.forEach((correctIndex) => {
             const tile = document.createElement('div');
             tile.className = 'puzzle-tile';
-            tile.draggable = true;
+            // we don't rely on native drag-and-drop for mobile friendliness
             tile.dataset.correctIndex = String(correctIndex);
 
             const row = Math.floor(correctIndex / size);
@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
             grid.appendChild(tile);
         });
 
-        enablePuzzleDragAndDrop(grid, size);
+        enablePuzzleInteractions(grid);
     }
 
     // ============================================
@@ -436,37 +436,9 @@ document.addEventListener('DOMContentLoaded', () => {
         showScreen('puzzle');
     }
 
-    function enablePuzzleDragAndDrop(grid, size) {
-        let dragSrc = null;
-
-        // Mobile-friendly: tap-to-swap (always works on phones)
+    function enablePuzzleInteractions(grid) {
+        // Tap / click to select and then swap – works both on desktop and mobile.
         let selectedTile = null;
-
-        grid.addEventListener('dragstart', (e) => {
-            const target = e.target;
-            if (!(target instanceof HTMLElement) || !target.classList.contains('puzzle-tile')) return;
-            dragSrc = target;
-            e.dataTransfer?.setData('text/plain', '');
-        });
-
-        grid.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
-
-        grid.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const target = e.target;
-            if (!dragSrc || !(target instanceof HTMLElement) || !target.classList.contains('puzzle-tile') || dragSrc === target) {
-                return;
-            }
-
-            swapTiles(dragSrc, target);
-            dragSrc = null;
-
-            if (isPuzzleSolved(grid)) {
-                handlePuzzleComplete();
-            }
-        });
 
         // Tap to select, tap another to swap (works on iOS/Android)
         grid.addEventListener('click', (e) => {
@@ -489,30 +461,6 @@ document.addEventListener('DOMContentLoaded', () => {
             swapTiles(selectedTile, target);
             selectedTile = null;
 
-            if (isPuzzleSolved(grid)) {
-                handlePuzzleComplete();
-            }
-        });
-
-        // Pointer-drag swap (nice-to-have on mobile browsers that support Pointer Events)
-        let pointerDraggingTile = null;
-        grid.addEventListener('pointerdown', (e) => {
-            const target = e.target;
-            if (!(target instanceof HTMLElement) || !target.classList.contains('puzzle-tile')) return;
-            pointerDraggingTile = target;
-            try { target.setPointerCapture(e.pointerId); } catch (_) {}
-        });
-
-        grid.addEventListener('pointerup', (e) => {
-            if (!pointerDraggingTile) return;
-            const dropEl = document.elementFromPoint(e.clientX, e.clientY);
-            const target = dropEl && (dropEl instanceof HTMLElement) ? dropEl.closest('.puzzle-tile') : null;
-            const src = pointerDraggingTile;
-            pointerDraggingTile = null;
-
-            if (!target || !(target instanceof HTMLElement) || !target.classList.contains('puzzle-tile') || target === src) return;
-
-            swapTiles(src, target);
             if (isPuzzleSolved(grid)) {
                 handlePuzzleComplete();
             }
