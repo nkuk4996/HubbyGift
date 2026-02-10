@@ -438,6 +438,7 @@ body {
     gap: 2px;
     border: 3px solid #444;
     background: #222;
+    touch-action: none; /* prevent page scrolling during touch interactions */
 }
 
 .puzzle-tile {
@@ -445,6 +446,8 @@ body {
     background-size: 400% 400%;
     background-repeat: no-repeat;
     cursor: grab;
+    touch-action: none;
+    user-select: none;
 }
 
 .puzzle-tile:active {
@@ -453,6 +456,11 @@ body {
 
 .puzzle-tile.correct {
     outline: 2px solid var(--green-correct);
+}
+
+.puzzle-tile.selected {
+    outline: 3px solid #fff;
+    box-shadow: 0 0 0 3px var(--pink-dark);
 }
 
 .puzzle-complete-message {

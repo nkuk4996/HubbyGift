@@ -439,6 +439,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function enablePuzzleDragAndDrop(grid, size) {
         let dragSrc = null;
 
+        // Mobile-friendly: tap-to-swap (always works on phones)
+        let selectedTile = null;
+
         grid.addEventListener('dragstart', (e) => {
             const target = e.target;
             if (!(target instanceof HTMLElement) || !target.classList.contains('puzzle-tile')) return;
@@ -460,6 +463,56 @@ document.addEventListener('DOMContentLoaded', () => {
             swapTiles(dragSrc, target);
             dragSrc = null;
 
+            if (isPuzzleSolved(grid)) {
+                handlePuzzleComplete();
+            }
+        });
+
+        // Tap to select, tap another to swap (works on iOS/Android)
+        grid.addEventListener('click', (e) => {
+            const target = e.target;
+            if (!(target instanceof HTMLElement) || !target.classList.contains('puzzle-tile')) return;
+
+            if (!selectedTile) {
+                selectedTile = target;
+                selectedTile.classList.add('selected');
+                return;
+            }
+
+            if (selectedTile === target) {
+                selectedTile.classList.remove('selected');
+                selectedTile = null;
+                return;
+            }
+
+            selectedTile.classList.remove('selected');
+            swapTiles(selectedTile, target);
+            selectedTile = null;
+
+            if (isPuzzleSolved(grid)) {
+                handlePuzzleComplete();
+            }
+        });
+
+        // Pointer-drag swap (nice-to-have on mobile browsers that support Pointer Events)
+        let pointerDraggingTile = null;
+        grid.addEventListener('pointerdown', (e) => {
+            const target = e.target;
+            if (!(target instanceof HTMLElement) || !target.classList.contains('puzzle-tile')) return;
+            pointerDraggingTile = target;
+            try { target.setPointerCapture(e.pointerId); } catch (_) {}
+        });
+
+        grid.addEventListener('pointerup', (e) => {
+            if (!pointerDraggingTile) return;
+            const dropEl = document.elementFromPoint(e.clientX, e.clientY);
+            const target = dropEl && (dropEl instanceof HTMLElement) ? dropEl.closest('.puzzle-tile') : null;
+            const src = pointerDraggingTile;
+            pointerDraggingTile = null;
+
+            if (!target || !(target instanceof HTMLElement) || !target.classList.contains('puzzle-tile') || target === src) return;
+
+            swapTiles(src, target);
             if (isPuzzleSolved(grid)) {
                 handlePuzzleComplete();
             }
